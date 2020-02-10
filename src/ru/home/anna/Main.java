@@ -11,7 +11,7 @@ public class Main {
         Random random = new Random();
 
         int[] data;
-        int sum = 0;
+//        int sum = 0;
 
         System.out.println("Enter number of the array elements: ");
         arrSize = scanner.nextInt();
@@ -21,28 +21,30 @@ public class Main {
         data = new int[arrSize];
 
 
-        System.out.println("Before");
+//        System.out.println("Before");
         for (int i = 0; i < arrSize; i++) {
             data[i] = random.nextInt(10) + 1;
-            System.out.println(i + ". " + data[i]);
+//            System.out.println(i + ". " + data[i]);
         }
 
         long time = System.currentTimeMillis();
-//        getMathSquaresInThreads(arrSize, numTreads, data);
-        getSumInThreads(arrSize, numTreads, data, sum);
-        System.out.println("time: " + (System.currentTimeMillis() - time));
+        getMathSquaresInThreads(arrSize, numTreads, data);
+//        getSumInThreads(arrSize, numTreads, data);
+        long res1 = (System.currentTimeMillis() - time);
+        System.out.println("time: " + res1);
 
-//        long time2 = System.currentTimeMillis();
-//        getMathSquares(arrSize, data);
-//        System.out.println("time 2: "+(System.currentTimeMillis() - time2));
+        long time2 = System.currentTimeMillis();
+        getMathSquares(arrSize, data);
+        long res2 = (System.currentTimeMillis() - time2);
+        System.out.println("time 2: "+res2);
 
     }
 
     static void getMathSquares(int arrSize, int[] data) {
-        System.out.println("After 2");
+//        System.out.println("After 2");
         for (int i = 0; i < arrSize; i++) {
             data[i] = data[i] * data[i];
-            System.out.println(i + ". " + data[i]);
+//            System.out.println(i + ". " + data[i]);
         }
     }
 
@@ -68,42 +70,39 @@ public class Main {
                 e.printStackTrace();
             }
         }
-        System.out.println("After");
+//        System.out.println("After");
         for (int i = 0; i < arrSize; i++) {
-            System.out.println(i + ". " + data[i]);
+//            System.out.println(i + ". " + data[i]);
         }
     }
 
-    static void getSumInThreads(int arrSize, int numTreads, int[] data, int sum) {
-
+    static void getSumInThreads(int arrSize, int numTreads, int[] data) {
+        int sum = 0;
         Thread[] threads = new Thread[numTreads];
         int numElementsInArr = arrSize / numTreads;
         int rem = arrSize % numTreads;
+        SumThread []arrSum = new SumThread[numElementsInArr];
 
         for (int i = 0; i < numTreads; i++) {
             int start = i * numElementsInArr;
             int end = start + numElementsInArr;
-            SumThread sumThread = new SumThread(data, start, end, sum);
-            threads[i] = new Thread(sumThread);
-            threads[i].start();
-            sum = sum + sumThread.getSum();
+            SumThread sumThread = new SumThread(data, start, end);
+            arrSum[i] = sumThread;
+            threads[i] = new Thread(arrSum[i]);
+                threads[i].start();
         }
-        for (int i = 0; i < numTreads; i++) {
-            int start = i * numElementsInArr;
-            int end = start + numElementsInArr;
-            SumThread sumThread = new SumThread(data, start, end, sum);
-            try {
-                threads[i].join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            System.out.println("sum tread = "+sumThread.getSum());
-        }
-
         for (int i = 0; i < rem; i++) {
             int index = arrSize - 1 - i;
             sum = sum+ data[index];
+        }
+        for (int i = 0; i < numTreads; i++) {
+            try {
+                threads[i].join();
+                System.out.println("sum tread = "+arrSum[i].getSum());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            sum = sum+arrSum[i].getSum();
         }
         System.out.println("sum = "+sum);
     }
@@ -131,13 +130,13 @@ class SquareThread implements Runnable {
 class SumThread implements Runnable {
     private int[] data;
     private int start, end, sum;
-//    int sum;
 
-    public SumThread(int[] data, int start, int end, int sum) {
+
+    public SumThread(int[] data, int start, int end) {
         this.data = data;
         this.start = start;
         this.end = end;
-        this.sum = sum;
+        this.sum = 0;
     }
 
     @Override
